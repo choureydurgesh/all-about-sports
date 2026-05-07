@@ -1,50 +1,112 @@
-<div id="match-data"></div>
-<table><tbody id="standings-data"></tbody></table>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai Indians | Official Fan Center</title>
+    <style>
+        :root { --mi-blue: #004ba0; --mi-gold: #d4af37; --mi-light-blue: #005ea8; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #002b5c; color: white; }
+        
+        header { background: var(--mi-blue); padding: 20px; text-align: center; border-bottom: 4px solid var(--mi-gold); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .container { max-width: 900px; margin: auto; padding: 20px; }
+
+        .card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 15px; padding: 25px; margin-bottom: 30px; border: 1px solid rgba(212, 175, 55, 0.3); }
+        .label { text-transform: uppercase; font-size: 0.8rem; color: var(--mi-gold); letter-spacing: 2px; margin-bottom: 15px; display: block; font-weight: bold; }
+        
+        .match-box { display: flex; justify-content: space-around; align-items: center; text-align: center; }
+        .score { font-size: 2.5rem; font-weight: 800; color: white; }
+        .vs { font-size: 1rem; color: var(--mi-gold); }
+
+        table { width: 100%; border-collapse: collapse; background: white; color: #333; border-radius: 10px; overflow: hidden; }
+        th { background: var(--mi-blue); color: white; padding: 15px; font-size: 0.8rem; }
+        td { padding: 15px; text-align: center; border-bottom: 1px solid #eee; }
+        tr.highlight { background: #eef6ff; font-weight: bold; border-left: 5px solid var(--mi-gold); }
+        
+        .loading { text-align: center; padding: 50px; font-style: italic; color: var(--mi-gold); }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1 style="margin:0; font-size: 1.8rem; letter-spacing: 3px;">MUMBAI INDIANS</h1>
+</header>
+
+<div class="container">
+    <div class="card">
+        <span class="label">Match Center - IPL 2026</span>
+        <div id="match-data" class="match-box">
+            <div class="loading">Syncing with Wankhede Stadium...</div>
+        </div>
+    </div>
+
+    <h2 style="color: var(--mi-gold); margin-bottom: 15px;">IPL Points Table</h2>
+    <div class="card" style="padding:0; background: transparent;">
+        <table>
+            <thead>
+                <tr>
+                    <th>POS</th>
+                    <th style="text-align:left">TEAM</th>
+                    <th>P</th>
+                    <th>W</th>
+                    <th>PTS</th>
+                </tr>
+            </thead>
+            <tbody id="standings-data">
+                <tr><td colspan="5" class="loading">Loading Standings...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
 <script>
-    // This wrapper ensures the page is ready
     document.addEventListener("DOMContentLoaded", function() {
+        // For PoC, we are using the official ID for Mumbai Indians
+        // In a real app, you'd use a key from CricAPI or RapidAPI Cricket
         
-        const KEY = "7144d152ee36ab05977e3993d9f68470";
-        const HEADERS = { "x-rapidapi-host": "v3.football.api-sports.io", "x-apisports-key": KEY };
-        const FCE_ID = 200;
-        const LEAGUE_ID = 72;
-        const SEASON = 2025;
+        const mockIPLData = {
+            match: {
+                team1: "MI",
+                team2: "CSK",
+                score1: "182/4 (20)",
+                score2: "179/7 (20)",
+                status: "MI won by 3 runs"
+            },
+            table: [
+                { pos: 1, name: "Mumbai Indians", p: 10, w: 8, pts: 16 },
+                { pos: 2, name: "Gujarat Titans", p: 10, w: 7, pts: 14 },
+                { pos: 3, name: "Lucknow Super Giants", p: 10, w: 6, pts: 12 },
+                { pos: 4, name: "Chennai Super Kings", p: 10, w: 5, pts: 10 }
+            ]
+        };
 
-        async function init() {
-            // MATCH DATA
-            try {
-                const resM = await fetch(`https://v3.football.api-sports.io/fixtures?team=${FCE_ID}&last=1`, { headers: HEADERS });
-                const dataM = await resM.json();
-                const matchContainer = document.getElementById('match-data');
-
-                if (matchContainer && dataM.response && dataM.response.length > 0) {
-                    const m = dataM.response[0];
-                    matchContainer.innerHTML = `<div>${m.teams.home.name} ${m.goals.home} - ${m.goals.away} ${m.teams.away.name}</div>`;
-                } else if (matchContainer) {
-                    matchContainer.innerHTML = "No recent matches found.";
-                }
-            } catch(e) { console.error("Match Error:", e); }
-
-            // STANDINGS DATA
-            try {
-                const resS = await fetch(`https://v3.football.api-sports.io/standings?league=${LEAGUE_ID}&season=${SEASON}`, { headers: HEADERS });
-                const dataS = await resS.json();
-                const tableBody = document.getElementById('standings-data');
-
-                if (tableBody && dataS.response && dataS.response.length > 0) {
-                    const list = dataS.response[0].league.standings[0];
-                    let rows = "";
-                    list.forEach(t => {
-                        rows += `<tr><td>${t.rank}</td><td>${t.team.name}</td><td>${t.points}</td></tr>`;
-                    });
-                    tableBody.innerHTML = rows;
-                } else if (tableBody) {
-                    tableBody.innerHTML = "<tr><td colspan='3'>Standings not available for this season.</td></tr>";
-                }
-            } catch(e) { console.error("Standings Error:", e); }
+        function renderIPL() {
+            // Match Render
+            document.getElementById('match-data').innerHTML = `
+                <div><h3>${mockIPLData.match.team1}</h3><p>${mockIPLData.match.score1}</p></div>
+                <div class="vs">VS</div>
+                <div><h3>${mockIPLData.match.team2}</h3><p>${mockIPLData.match.score2}</p></div>
+            `;
+            
+            // Table Render
+            let rows = "";
+            mockIPLData.table.forEach(t => {
+                const isMI = t.name === "Mumbai Indians" ? "class='highlight'" : "";
+                rows += `<tr ${isMI}>
+                    <td>${t.pos}</td>
+                    <td style="text-align:left">${t.name}</td>
+                    <td>${t.p}</td>
+                    <td>${t.w}</td>
+                    <td style="color:#004ba0; font-weight:bold;">${t.pts}</td>
+                </tr>`;
+            });
+            document.getElementById('standings-data').innerHTML = rows;
         }
 
-        init();
+        // Simulate a slight delay for realism
+        setTimeout(renderIPL, 1000);
     });
 </script>
+
+</body>
+</html>
