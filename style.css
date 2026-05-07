@@ -1,0 +1,27 @@
+:root {
+    --mi-blue: #004ba0;
+    --mi-gold: #d4af37;
+    --white: #ffffff;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    background: #001e50;
+    color: var(--white);
+}
+
+header {
+    background: var(--mi-blue);
+    padding: 20px;
+    text-align: center;
+    border-bottom: 4px solid var(--mi-gold);
+}
+
+.container {
+    max-width: 1000px;
+    margin: auto;
+    padding: 20px;
+}
+
+/* Add your Card and Grid styles here... */
