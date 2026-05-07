@@ -1,40 +1,43 @@
-const API_KEY = "7144d152ee36ab05977e3993d9f68470"; // Your key
-const BASE_URL = "https://v3.football.api-sports.io"; // Switch to a Cricket API for IPL
+const CRICKET_API_TOKEN = "YOUR_SPORTMONKS_TOKEN_HERE";
+const BASE_URL = "https://cricket.sportmonks.com/api/v2.0";
 
-async function loadTeam(teamId) {
-    const main = document.getElementById('main-content');
-    main.innerHTML = "<div class='loading'>Fetching Real-Time Player Stats...</div>";
+// Standard Developer Service Object
+const CricketService = {
+    
+    // 1. Fetch IPL Standings
+    async getStandings(seasonId = 2026) {
+        const url = `${BASE_URL}/standings/season/${seasonId}?api_token=${CRICKET_API_TOKEN}`;
+        const response = await fetch(url);
+        const json = await response.json();
+        return json.data;
+    },
 
-    try {
-        // Fetching Players for the selected team
-        const response = await fetch(`${BASE_URL}/players?team=${teamId}&season=2026`, {
-            headers: { "x-apisports-key": API_KEY }
-        });
-        const data = await response.json();
-        
-        renderPlayerStats(data.response);
-    } catch (error) {
-        main.innerHTML = "Error loading team data.";
+    // 2. Fetch Team Squad with Stats
+    async getTeamSquad(teamId) {
+        // We use 'includes' to get player names and photos in one go
+        const include = "squad.player"; 
+        const url = `${BASE_URL}/teams/${teamId}?include=${include}&api_token=${CRICKET_API_TOKEN}`;
+        const response = await fetch(url);
+        const json = await response.json();
+        return json.data.squad;
     }
+};
+
+// UI Logic
+async function displayMumbaiIndians() {
+    const mi_team_id = 31; // Mumbai Indians ID in Sportmonks
+    const squad = await CricketService.getTeamSquad(mi_team_id);
+    
+    const container = document.getElementById('player-container');
+    container.innerHTML = squad.map(item => `
+        <div class="player-card">
+            <img src="${item.player.image_path}" class="player-img">
+            <div class="player-info">
+                <h3>${item.player.fullname}</h3>
+                <p>${item.player.position.name}</p>
+            </div>
+        </div>
+    `).join('');
 }
 
-function renderPlayerStats(players) {
-    const main = document.getElementById('main-content');
-    let html = `<div class="stats-grid">`;
-
-    players.forEach(p => {
-        // Professional card showing real-time stats (runs, wickets, etc.)
-        html += `
-            <div class="stat-card">
-                <img src="${p.player.photo}">
-                <h3>${p.player.name}</h3>
-                <div class="stat-row">
-                    <span>Matches: ${p.statistics[0].games.appearences}</span>
-                    <span>Performance: ${p.statistics[0].games.rating || 'N/A'}</span>
-                </div>
-            </div>`;
-    });
-
-    html += `</div>`;
-    main.innerHTML = html;
-}
+document.addEventListener("DOMContentLoaded", displayMumbaiIndians);
