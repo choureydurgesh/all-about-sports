@@ -1,8 +1,33 @@
-<div class="team-nav">
-    <img src="https://upload.wikimedia.org/wikipedia/en/thumb/c/cd/Mumbai_Indians_Logo.svg/250px-Mumbai_Indians_Logo.svg.png" 
-         onclick="handleTeamClick('Mumbai Indians')">
-    <img src="https://upload.wikimedia.org/wikipedia/en/thumb/2/2b/Chennai_Super_Kings_Logo.svg/250px-Chennai_Super_Kings_Logo.svg.png" 
-         onclick="handleTeamClick('Chennai Super Kings')">
-    <img src="https://upload.wikimedia.org/wikipedia/en/thumb/2/24/Royal_Challengers_Bangalore_Logo.svg/250px-Royal_Challengers_Bangalore_Logo.svg.png" 
-         onclick="handleTeamClick('Royal Challengers Bangalore')">
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPL 2026 | Match & Squad Center</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <div class="team-nav">
+        <img src="https://upload.wikimedia.org/wikipedia/en/thumb/c/cd/Mumbai_Indians_Logo.svg/250px-Mumbai_Indians_Logo.svg.png" 
+             class="nav-logo" onclick="handleTeamClick('Mumbai Indians')" alt="MI">
+        <img src="https://upload.wikimedia.org/wikipedia/en/thumb/2/2b/Chennai_Super_Kings_Logo.svg/250px-Chennai_Super_Kings_Logo.svg.png" 
+             class="nav-logo" onclick="handleTeamClick('Chennai Super Kings')" alt="CSK">
+        <img src="https://upload.wikimedia.org/wikipedia/en/thumb/2/24/Royal_Challengers_Bangalore_Logo.svg/250px-Royal_Challengers_Bangalore_Logo.svg.png" 
+             class="nav-logo" onclick="handleTeamClick('Royal Challengers Bangalore')" alt="RCB">
+    </div>
+</header>
+
+<main class="container">
+    <div id="display-area">
+        <div class="welcome-screen">
+            <h1>IPL 2026 Portal</h1>
+            <p>Select a team logo to fetch real-time match data and squad info.</p>
+        </div>
+    </div>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
