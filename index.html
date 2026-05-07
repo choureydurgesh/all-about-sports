@@ -1,60 +1,50 @@
+<div id="match-data"></div>
+<table><tbody id="standings-data"></tbody></table>
+
 <script>
-    const KEY = "7144d152ee36ab05977e3993d9f68470";
-    const HEADERS = { "x-rapidapi-host": "v3.football.api-sports.io", "x-apisports-key": KEY };
-    const FCE_ID = 200;
-    const LEAGUE_ID = 72;
-    const SEASON = 2025; // This is the season that just finished
-
-    async function init() {
-        console.log("Fetching data for May 2026...");
+    // This wrapper ensures the page is ready
+    document.addEventListener("DOMContentLoaded", function() {
         
-        // 1. Fetch Match Data
-        try {
-            const resM = await fetch(`https://v3.football.api-sports.io/fixtures?team=${FCE_ID}&last=1`, { headers: HEADERS });
-            const dataM = await resM.json();
-            const matchContainer = document.getElementById('match-data');
+        const KEY = "7144d152ee36ab05977e3993d9f68470";
+        const HEADERS = { "x-rapidapi-host": "v3.football.api-sports.io", "x-apisports-key": KEY };
+        const FCE_ID = 200;
+        const LEAGUE_ID = 72;
+        const SEASON = 2025;
 
-            if (dataM.response && dataM.response.length > 0) {
-                const m = dataM.response[0];
-                matchContainer.innerHTML = `
-                    <div class="score-box">
-                        <div class="team"><img src="${m.teams.home.logo}" width="50"><p>${m.teams.home.name}</p></div>
-                        <div class="result">${m.goals.home} - ${m.goals.away}</div>
-                        <div class="team"><img src="${m.teams.away.logo}" width="50"><p>${m.teams.away.name}</p></div>
-                    </div>`;
-            } else {
-                matchContainer.innerHTML = "<p style='color:#888;'>Season recently ended. Awaiting new fixtures.</p>";
-            }
-        } catch(e) { console.error("Match Error:", e); }
+        async function init() {
+            // MATCH DATA
+            try {
+                const resM = await fetch(`https://v3.football.api-sports.io/fixtures?team=${FCE_ID}&last=1`, { headers: HEADERS });
+                const dataM = await resM.json();
+                const matchContainer = document.getElementById('match-data');
 
-        // 2. Fetch Standings
-        try {
-            const resS = await fetch(`https://v3.football.api-sports.io/standings?league=${LEAGUE_ID}&season=${SEASON}`, { headers: HEADERS });
-            const dataS = await resS.json();
-            const tableBody = document.getElementById('standings-data');
+                if (matchContainer && dataM.response && dataM.response.length > 0) {
+                    const m = dataM.response[0];
+                    matchContainer.innerHTML = `<div>${m.teams.home.name} ${m.goals.home} - ${m.goals.away} ${m.teams.away.name}</div>`;
+                } else if (matchContainer) {
+                    matchContainer.innerHTML = "No recent matches found.";
+                }
+            } catch(e) { console.error("Match Error:", e); }
 
-            // Safety Gate: Check if response exists before reading it
-            if (dataS.response && dataS.response.length > 0 && dataS.response[0].league.standings) {
-                const list = dataS.response[0].league.standings[0];
-                let rows = "";
-                list.forEach(t => {
-                    const isFCE = t.team.id === FCE_ID ? "class='fce-row'" : "";
-                    rows += `<tr ${isFCE}>
-                        <td>${t.rank}</td>
-                        <td style="text-align:left">${t.team.name}</td>
-                        <td>${t.all.played}</td>
-                        <td><strong>${t.points}</strong></td>
-                    </tr>`;
-                });
-                tableBody.innerHTML = rows;
-            } else {
-                tableBody.innerHTML = "<tr><td colspan='4'>Standings for " + SEASON + " are being updated by the league.</td></tr>";
-            }
-        } catch(e) { 
-            console.error("Standings Error:", e);
-            document.getElementById('standings-data').innerHTML = "<tr><td colspan='4'>Connection Error.</td></tr>";
+            // STANDINGS DATA
+            try {
+                const resS = await fetch(`https://v3.football.api-sports.io/standings?league=${LEAGUE_ID}&season=${SEASON}`, { headers: HEADERS });
+                const dataS = await resS.json();
+                const tableBody = document.getElementById('standings-data');
+
+                if (tableBody && dataS.response && dataS.response.length > 0) {
+                    const list = dataS.response[0].league.standings[0];
+                    let rows = "";
+                    list.forEach(t => {
+                        rows += `<tr><td>${t.rank}</td><td>${t.team.name}</td><td>${t.points}</td></tr>`;
+                    });
+                    tableBody.innerHTML = rows;
+                } else if (tableBody) {
+                    tableBody.innerHTML = "<tr><td colspan='3'>Standings not available for this season.</td></tr>";
+                }
+            } catch(e) { console.error("Standings Error:", e); }
         }
-    }
 
-    init();
+        init();
+    });
 </script>
