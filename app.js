@@ -1,55 +1,47 @@
-// 1. YOUR API TOKEN (Double check this in Sportmonks Dashboard)
-const API_TOKEN = "7144d152ee36ab05977e3993d9f68470"; 
+const API_KEY = "bc06bd4f-8b3f-41ad-9b1b-1ad0db04e2da";
+const IPL_SERIES_ID = "47bbf69d-4a51-40fa-80fe-f475b849547d"; // Typical ID format for IPL
 
-// 2. We use a "CORS Proxy" to bypass the security block
-const PROXY = "https://corsproxy.io/?";
-const BASE_URL = "https://cricket.sportmonks.com/api/v2.0";
-
-async function handleTeamClick(teamId) {
+async function handleTeamClick(teamName) {
     const displayArea = document.getElementById('display-area');
-    displayArea.innerHTML = "<h3>Fetching Real-Time Stats...</h3>";
+    displayArea.innerHTML = "<div class='welcome-box'><h3>Scanning CricAPI for " + teamName + " Squad...</h3></div>";
 
-    // Standard Developer Tip: Construct the URL carefully
-    const targetUrl = `${BASE_URL}/teams/${teamId}?include=squad.player&api_token=${API_TOKEN}`;
-    
     try {
-        // We call the proxy, which then calls Sportmonks
-        const response = await fetch(PROXY + encodeURIComponent(targetUrl));
-        
-        if (!response.ok) {
-            if (response.status === 401) throw new Error("Invalid API Key");
-            throw new Error("Server Error");
-        }
+        // Step 1: Fetch Series Info (Matches & Squads)
+        const response = await fetch(`https://api.cricapi.com/v1/series_info?apikey=${API_KEY}&id=${IPL_SERIES_ID}`);
+        const result = await response.json();
 
-        const json = await response.json();
-        
-        if (json.data && json.data.squad) {
-            renderPlayers(json.data.squad);
-        } else {
-            displayArea.innerHTML = "<h3>No squad data found for this team.</h3>";
-        }
+        if (result.status !== "success") throw new Error("API Limit Reached or Key Error");
+
+        // Step 2: Filter for the specific team (e.g., Mumbai Indians)
+        // Note: CricAPI free tier often provides match lists. We will extract 
+        // player names from the 'matchList' or 'squads' array.
+        const squadData = result.data.matchList.filter(match => 
+            match.teams.includes(teamName)
+        );
+
+        renderSquad(teamName, squadData);
     } catch (error) {
-        console.error("Critical Error:", error);
-        displayArea.innerHTML = `<h3>Error: ${error.message}.</h3><p>Check if your Sportmonks Cricket plan is active.</p>`;
+        console.error(error);
+        displayArea.innerHTML = `<div class="welcome-box"><h3>Data Unavailable</h3><p>${error.message}</p></div>`;
     }
 }
 
-function renderPlayers(squad) {
+function renderSquad(teamName, matches) {
     const displayArea = document.getElementById('display-area');
-    let html = `<div class="stats-grid">`;
-
-    squad.forEach(item => {
-        const p = item.player;
-        // If image is missing, we use a default cricket avatar
-        const img = p.image_path || "https://via.placeholder.com/150?text=Player";
-        
+    
+    // For PoC, we show the next 3 matches for that team
+    let html = `<h2>${teamName} - Upcoming Fixtures</h2><div class="stats-grid">`;
+    
+    matches.slice(0, 4).forEach(m => {
         html += `
             <div class="player-card">
-                <img src="${img}" alt="${p.fullname}">
-                <h3>${p.fullname}</h3>
-                <p>${p.position ? p.position.name : 'Player'}</p>
-            </div>
-        `;
+                <span class="player-tag">${m.matchType.toUpperCase()}</span>
+                <h3>vs ${m.teams.find(t => t !== teamName)}</h3>
+                <p style="color: #666;">${new Date(m.date).toDateString()}</p>
+                <hr>
+                <p style="font-size: 0.8rem; color: var(--ipl-blue)">${m.venue}</p>
+                <div class="status-badge">${m.status}</div>
+            </div>`;
     });
 
     html += `</div>`;
