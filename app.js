@@ -1,46 +1,51 @@
 const API_KEY = "bc06bd4f-8b3f-41ad-9b1b-1ad0db04e2da";
-const IPL_SERIES_ID = "47bbf69d-4a51-40fa-80fe-f475b849547d"; // Typical ID format for IPL
+const IPL_SERIES_ID = "47bbf69d-4a51-40fa-80fe-f475b849547d"; // Typical ID for IPL 2026
 
 async function handleTeamClick(teamName) {
     const displayArea = document.getElementById('display-area');
-    displayArea.innerHTML = "<div class='welcome-box'><h3>Scanning CricAPI for " + teamName + " Squad...</h3></div>";
+    displayArea.innerHTML = "<h3 style='text-align:center'>Fetching " + teamName + " data...</h3>";
 
     try {
-        // Step 1: Fetch Series Info (Matches & Squads)
+        // Fetch series info which includes the full match list
         const response = await fetch(`https://api.cricapi.com/v1/series_info?apikey=${API_KEY}&id=${IPL_SERIES_ID}`);
         const result = await response.json();
 
-        if (result.status !== "success") throw new Error("API Limit Reached or Key Error");
+        if (result.status !== "success") {
+            throw new Error(result.reason || "API Error");
+        }
 
-        // Step 2: Filter for the specific team (e.g., Mumbai Indians)
-        // Note: CricAPI free tier often provides match lists. We will extract 
-        // player names from the 'matchList' or 'squads' array.
-        const squadData = result.data.matchList.filter(match => 
+        // Filter matches where the selected team is playing
+        const teamMatches = result.data.matchList.filter(match => 
             match.teams.includes(teamName)
         );
 
-        renderSquad(teamName, squadData);
+        renderMatches(teamName, teamMatches);
     } catch (error) {
         console.error(error);
-        displayArea.innerHTML = `<div class="welcome-box"><h3>Data Unavailable</h3><p>${error.message}</p></div>`;
+        displayArea.innerHTML = `<div class='card'><h3>Error</h3><p>${error.message}</p></div>`;
     }
 }
 
-function renderSquad(teamName, matches) {
+function renderMatches(teamName, matches) {
     const displayArea = document.getElementById('display-area');
     
-    // For PoC, we show the next 3 matches for that team
-    let html = `<h2>${teamName} - Upcoming Fixtures</h2><div class="stats-grid">`;
+    if (matches.length === 0) {
+        displayArea.innerHTML = "<h3>No matches found for " + teamName + ".</h3>";
+        return;
+    }
+
+    let html = `<h2 style="color:#001e50">${teamName} - Match Center</h2><div class="stats-grid">`;
     
-    matches.slice(0, 4).forEach(m => {
+    matches.forEach(m => {
+        const opponent = m.teams.find(t => t !== teamName);
         html += `
-            <div class="player-card">
-                <span class="player-tag">${m.matchType.toUpperCase()}</span>
-                <h3>vs ${m.teams.find(t => t !== teamName)}</h3>
-                <p style="color: #666;">${new Date(m.date).toDateString()}</p>
-                <hr>
-                <p style="font-size: 0.8rem; color: var(--ipl-blue)">${m.venue}</p>
-                <div class="status-badge">${m.status}</div>
+            <div class="card">
+                <small style="color:var(--ipl-gold)">${m.matchType.toUpperCase()}</small>
+                <h3>vs ${opponent}</h3>
+                <p>${new Date(m.date).toLocaleDateString()}</p>
+                <hr style="border:0; border-top:1px solid #eee">
+                <span class="match-status">${m.status}</span>
+                <p style="font-size:0.75rem; margin-top:10px">${m.venue}</p>
             </div>`;
     });
 
