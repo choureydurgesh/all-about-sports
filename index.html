@@ -1,111 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FC Eindhoven | Match Center</title>
-    <style>
-        :root { --ipl-blue: #001e50; --ipl-gold: #ecb331; --bg: #f0f3f7; }
-        body { font-family: 'Arial', sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
-        
-        /* Header */
-        header { background: var(--ipl-blue); color: white; padding: 20px; text-align: center; border-bottom: 5px solid var(--ipl-gold); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-        
-        .container { max-width: 800px; margin: auto; padding: 20px; }
-
-        /* Match Card */
-        .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #e0e0e0; }
-        .label { text-transform: uppercase; font-size: 0.75rem; font-weight: bold; color: #888; letter-spacing: 1px; margin-bottom: 15px; display: block; }
-        
-        .score-box { display: flex; justify-content: space-between; align-items: center; text-align: center; }
-        .team img { width: 50px; height: 50px; object-fit: contain; }
-        .team p { font-size: 0.9rem; font-weight: bold; margin: 5px 0; }
-        .result { font-size: 2.2rem; font-weight: 800; color: var(--ipl-blue); }
-
-        /* Table */
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; }
-        th { background: var(--ipl-blue); color: white; padding: 12px; font-size: 0.8rem; text-align: center; }
-        td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-        tr.fce-row { background: #fff9e6; font-weight: bold; border-left: 5px solid var(--ipl-gold); }
-        
-        .loading { text-align: center; color: #999; padding: 40px; font-style: italic; }
-    </style>
-</head>
-<body>
-
-<header>
-    <h1 style="margin:0;">FC EINDHOVEN</h1>
-</header>
-
-<div class="container">
-    <!-- Match Result -->
-    <div class="card">
-        <span class="label">Last Match Result</span>
-        <div id="match-data" class="loading">Fetching Stadium Data...</div>
-    </div>
-
-    <!-- Standings -->
-    <h2 style="color: var(--ipl-blue); margin-bottom: 15px;">League Standings</h2>
-    <div class="card" style="padding:0;">
-        <table>
-            <thead>
-                <tr>
-                    <th>Pos</th>
-                    <th style="text-align:left">Team</th>
-                    <th>P</th>
-                    <th>Pts</th>
-                </tr>
-            </thead>
-            <tbody id="standings-data">
-                <tr><td colspan="4" class="loading">Loading Standings...</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
 <script>
     const KEY = "7144d152ee36ab05977e3993d9f68470";
     const HEADERS = { "x-rapidapi-host": "v3.football.api-sports.io", "x-apisports-key": KEY };
     const FCE_ID = 200;
     const LEAGUE_ID = 72;
-    const SEASON = 2025; // The 2025/26 season ID
+    const SEASON = 2025; // The 2025/26 season
 
     async function init() {
-        // 1. Get Last Match
+        // 1. Fetch Match Data
         try {
             const resM = await fetch(`https://v3.football.api-sports.io/fixtures?team=${FCE_ID}&last=1`, { headers: HEADERS });
             const dataM = await resM.json();
-            const m = dataM.response[0];
-            document.getElementById('match-data').innerHTML = `
-                <div class="score-box">
-                    <div class="team"><img src="${m.teams.home.logo}"><p>${m.teams.home.name}</p></div>
-                    <div class="result">${m.goals.home} - ${m.goals.away}</div>
-                    <div class="team"><img src="${m.teams.away.logo}"><p>${m.teams.away.name}</p></div>
-                </div>
-            `;
-        } catch(e) { console.log(e); }
+            
+            const matchContainer = document.getElementById('match-data');
+            
+            if (dataM.response && dataM.response.length > 0) {
+                const m = dataM.response[0];
+                matchContainer.innerHTML = `
+                    <div class="score-box">
+                        <div class="team"><img src="${m.teams.home.logo}" width="50"><p>${m.teams.home.name}</p></div>
+                        <div class="result">${m.goals.home} - ${m.goals.away}</div>
+                        <div class="team"><img src="${m.teams.away.logo}" width="50"><p>${m.teams.away.name}</p></div>
+                    </div>`;
+            } else {
+                matchContainer.innerHTML = "<p>Season Ended. No recent matches found.</p>";
+            }
+        } catch(e) { console.error("Match Error:", e); }
 
-        // 2. Get Standings
+        // 2. Fetch Standings
         try {
             const resS = await fetch(`https://v3.football.api-sports.io/standings?league=${LEAGUE_ID}&season=${SEASON}`, { headers: HEADERS });
             const dataS = await resS.json();
-            const list = dataS.response[0].league.standings[0];
-            let rows = "";
-            list.forEach(t => {
-                const isFCE = t.team.id === FCE_ID ? "class='fce-row'" : "";
-                rows += `<tr ${isFCE}>
-                    <td>${t.rank}</td>
-                    <td style="text-align:left">${t.team.name}</td>
-                    <td>${t.all.played}</td>
-                    <td style="color:var(--ipl-blue); font-weight:bold;">${t.points}</td>
-                </tr>`;
-            });
-            document.getElementById('standings-data').innerHTML = rows;
-        } catch(e) { console.log(e); }
+            
+            if (dataS.response && dataS.response[0]) {
+                const list = dataS.response[0].league.standings[0];
+                let rows = "";
+                list.forEach(t => {
+                    const isFCE = t.team.id === FCE_ID ? "class='fce-row'" : "";
+                    rows += `<tr ${isFCE}>
+                        <td>${t.rank}</td>
+                        <td style="text-align:left">${t.team.name}</td>
+                        <td>${t.all.played}</td>
+                        <td><strong>${t.points}</strong></td>
+                    </tr>`;
+                });
+                document.getElementById('standings-data').innerHTML = rows;
+            } else {
+                document.getElementById('standings-data').innerHTML = "<tr><td colspan='4'>Standings currently unavailable.</td></tr>";
+            }
+        } catch(e) { console.error("Standings Error:", e); }
     }
 
     init();
 </script>
-
-</body>
-</html>
