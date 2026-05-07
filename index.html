@@ -3,16 +3,17 @@
     const HEADERS = { "x-rapidapi-host": "v3.football.api-sports.io", "x-apisports-key": KEY };
     const FCE_ID = 200;
     const LEAGUE_ID = 72;
-    const SEASON = 2025; // The 2025/26 season
+    const SEASON = 2025; // This is the season that just finished
 
     async function init() {
+        console.log("Fetching data for May 2026...");
+        
         // 1. Fetch Match Data
         try {
             const resM = await fetch(`https://v3.football.api-sports.io/fixtures?team=${FCE_ID}&last=1`, { headers: HEADERS });
             const dataM = await resM.json();
-            
             const matchContainer = document.getElementById('match-data');
-            
+
             if (dataM.response && dataM.response.length > 0) {
                 const m = dataM.response[0];
                 matchContainer.innerHTML = `
@@ -22,7 +23,7 @@
                         <div class="team"><img src="${m.teams.away.logo}" width="50"><p>${m.teams.away.name}</p></div>
                     </div>`;
             } else {
-                matchContainer.innerHTML = "<p>Season Ended. No recent matches found.</p>";
+                matchContainer.innerHTML = "<p style='color:#888;'>Season recently ended. Awaiting new fixtures.</p>";
             }
         } catch(e) { console.error("Match Error:", e); }
 
@@ -30,8 +31,10 @@
         try {
             const resS = await fetch(`https://v3.football.api-sports.io/standings?league=${LEAGUE_ID}&season=${SEASON}`, { headers: HEADERS });
             const dataS = await resS.json();
-            
-            if (dataS.response && dataS.response[0]) {
+            const tableBody = document.getElementById('standings-data');
+
+            // Safety Gate: Check if response exists before reading it
+            if (dataS.response && dataS.response.length > 0 && dataS.response[0].league.standings) {
                 const list = dataS.response[0].league.standings[0];
                 let rows = "";
                 list.forEach(t => {
@@ -43,11 +46,14 @@
                         <td><strong>${t.points}</strong></td>
                     </tr>`;
                 });
-                document.getElementById('standings-data').innerHTML = rows;
+                tableBody.innerHTML = rows;
             } else {
-                document.getElementById('standings-data').innerHTML = "<tr><td colspan='4'>Standings currently unavailable.</td></tr>";
+                tableBody.innerHTML = "<tr><td colspan='4'>Standings for " + SEASON + " are being updated by the league.</td></tr>";
             }
-        } catch(e) { console.error("Standings Error:", e); }
+        } catch(e) { 
+            console.error("Standings Error:", e);
+            document.getElementById('standings-data').innerHTML = "<tr><td colspan='4'>Connection Error.</td></tr>";
+        }
     }
 
     init();
