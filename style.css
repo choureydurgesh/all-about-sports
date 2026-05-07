@@ -1,65 +1,50 @@
 :root {
     --ipl-blue: #001e50;
     --ipl-gold: #ecb331;
-    --card-bg: #ffffff;
+    --white: #ffffff;
 }
 
-body {
-    font-family: 'Segoe UI', sans-serif;
-    margin: 0;
-    background-color: #f0f2f5;
-    color: #333;
-}
-
+/* Header & Nav */
 header {
     background: var(--ipl-blue);
-    padding: 15px 0;
-    border-bottom: 4px solid var(--ipl-gold);
+    padding: 20px 0;
+    border-bottom: 5px solid var(--ipl-gold);
+    text-align: center;
 }
 
-.team-nav {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-}
-
-.nav-logo {
+.team-nav img {
     width: 60px;
     height: 60px;
+    margin: 0 15px;
     cursor: pointer;
-    transition: transform 0.3s;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+    transition: 0.3s;
 }
 
-.nav-logo:hover {
-    transform: scale(1.2);
-}
+.team-nav img:hover { transform: scale(1.2); }
 
-.container {
-    max-width: 1100px;
-    margin: 40px auto;
-    padding: 0 20px;
-}
+/* Main Content */
+.container { max-width: 1100px; margin: 40px auto; padding: 20px; }
 
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 25px;
+    gap: 20px;
 }
 
 .player-card {
-    background: var(--card-bg);
+    background: white;
     border-radius: 12px;
     padding: 20px;
-    text-align: center;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     border-top: 5px solid var(--ipl-blue);
+    text-align: center;
 }
 
-.player-card img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: #eee;
-    margin-bottom: 15px;
+.status-badge {
+    background: #eef6ff;
+    color: var(--ipl-blue);
+    font-size: 0.7rem;
+    padding: 5px;
+    border-radius: 4px;
+    margin-top: 10px;
 }
